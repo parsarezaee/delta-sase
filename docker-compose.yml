@@ -1,0 +1,52 @@
+version: '3.7'
+
+
+services:
+  db:
+    image: postgres:10-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=parsa
+      - POSTGRES_PASSWORD=parsa1234
+      - POSTGRES_DB=delta
+    ports:
+      - 5432:5432
+    volumes:
+      - /db/postgres-data:/var/lib/postgresql/data
+    
+  web:
+    build: .
+    container_name: delta_web
+    ports:
+      - 8000:8000
+    volumes:
+      - ./delta_src:/delta_src
+    command: bash Deployment/bashes/RunBash.sh
+    links:
+      - db
+      - redis
+    depends_on:
+      - db
+      - redis
+
+  redis:
+    image: redis
+    restart: always
+    volumes:
+      - ./db/redis_data:/data
+  
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: delta_pgadmin
+    restart: always
+    ports:
+      - 5041:5041
+    environment:
+      PGADMIN_DEFAULT_EMAIL : pgadmin4@pgadmin.org
+      PGADMIN_DEFAULT_PASSWORD: parsa1234
+    depends_on:
+      - db
+volumes:
+  delta_src:
+  postgres-data:
+  redis_data:
